@@ -32,14 +32,19 @@ const seedAdmin = async () => {
     }
 };
 
-connectDB().then(() => {
-    seedAdmin();
-});
-
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
+
+app.get("/", (req, res) => {
+    res.send("Garage CRM Backend API is running...");
+});
+
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok", message: "Server is healthy" });
+});
+
 app.use("/api/customer", customerRoutes);
 app.use("/api/garage", garageRoutes);
 app.use("/api/admin", adminRoutes);
@@ -50,6 +55,9 @@ app.use("/api/invoice", invoiceRoutes);
 app.use("/api/transaction", transactionRoutes);
 app.use("/api/upload", uploadRoutes);
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+connectDB().then(() => {
+    seedAdmin();
+    app.listen(port, "0.0.0.0", () => {
+        console.log(`Server is running on port ${port}`);
+    });
 });
