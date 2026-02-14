@@ -27,14 +27,14 @@ const GarageSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    logo: {
-        type: String,
-        trim: true
-    },
     isDeleted: {
         type: Boolean,
-        default: false,
-        trim: true
+        default: false
+    },
+    currentSubscriptionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Subscription",
+        default: null
     }
 }, {
     timestamps: true
