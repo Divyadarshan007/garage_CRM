@@ -38,9 +38,9 @@ interface Subscription {
 interface Garage {
     _id: string;
     name: string;
-    ownerName: string;
-    ownerMobile: string;
-    ownerEmail: string;
+    owner: string;
+    mobile: string;
+    email: string;
     address: string;
     logo?: string;
     status: string;
@@ -64,7 +64,7 @@ export default function GarageDashboard() {
                 const data = await garageAPI.getAll();
                 console.log(data);
 
-                const fetchedGarages: Garage[] = Array.isArray(data) ? data : (data.garages || []);
+                const fetchedGarages: Garage[] = Array.isArray(data) ? data : (data.data || []);
 
                 setGarages(fetchedGarages);
 
@@ -83,7 +83,7 @@ export default function GarageDashboard() {
 
     const refreshGarages = async () => {
         const data = await garageAPI.getAll();
-        const fetched: Garage[] = Array.isArray(data) ? data : (data.garages || []);
+        const fetched: Garage[] = Array.isArray(data) ? data : (data.data || []);
         setGarages(fetched);
     };
 
@@ -219,11 +219,11 @@ export default function GarageDashboard() {
                                         <div className="flex flex-col gap-1">
                                             <div className="flex items-center gap-2 text-sm font-medium">
                                                 <User className="h-3.5 w-3.5 text-muted-foreground" />
-                                                {garage.ownerName}
+                                                {garage.owner}
                                             </div>
                                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                                <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {garage.ownerMobile}</span>
-                                                <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {garage.ownerEmail}</span>
+                                                <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {garage.mobile}</span>
+                                                <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {garage.email}</span>
                                             </div>
                                         </div>
                                     </TableCell>

@@ -16,9 +16,10 @@ export default function AddGaragePage() {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
-        ownerName: '',
-        ownerMobile: '',
-        ownerEmail: '',
+        owner: '',
+        mobile: '',
+        email: '',
+        password: '',
         address: ''
     });
 
@@ -86,24 +87,24 @@ export default function AddGaragePage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="ownerName">Owner Name <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="owner">Owner Name <span className="text-red-500">*</span></Label>
                                 <Input
-                                    id="ownerName"
-                                    name="ownerName"
+                                    id="owner"
+                                    name="owner"
                                     placeholder="e.g. John Doe"
-                                    value={formData.ownerName}
+                                    value={formData.owner}
                                     onChange={handleChange}
                                     required
                                     className="bg-background"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="ownerMobile">Owner Mobile <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="mobile">Mobile <span className="text-red-500">*</span></Label>
                                 <Input
-                                    id="ownerMobile"
-                                    name="ownerMobile"
+                                    id="mobile"
+                                    name="mobile"
                                     placeholder="e.g. +91 9876543210"
-                                    value={formData.ownerMobile}
+                                    value={formData.mobile}
                                     onChange={handleChange}
                                     required
                                     className="bg-background"
@@ -112,13 +113,27 @@ export default function AddGaragePage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="ownerEmail">Owner Email <span className="text-red-500">*</span></Label>
+                            <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
                             <Input
-                                id="ownerEmail"
-                                name="ownerEmail"
+                                id="email"
+                                name="email"
                                 type="email"
                                 placeholder="e.g. john@example.com"
-                                value={formData.ownerEmail}
+                                value={formData.email}
+                                onChange={handleChange}
+                                required
+                                className="bg-background"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password <span className="text-red-500">*</span></Label>
+                            <Input
+                                id="password"
+                                name="password"
+                                type="password"
+                                placeholder="Set login password for this garage"
+                                value={formData.password}
                                 onChange={handleChange}
                                 required
                                 className="bg-background"

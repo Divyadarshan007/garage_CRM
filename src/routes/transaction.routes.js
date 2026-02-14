@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../utils/authMiddleware");
+const { protectGarage } = require("../utils/garageAuthMiddleware");
 
-router.use(protect);
+router.use(protectGarage);
 
 router.post("/", (req, res) => {
     res.send("Transaction created");

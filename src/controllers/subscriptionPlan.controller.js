@@ -1,5 +1,6 @@
 const SubscriptionPlan = require("../models/SubscriptionPlan.model");
 const Subscription = require("../models/Subscription.model");
+const { getPaginationParams, buildPaginationMeta } = require("../utils/pagination.helper");
 
 const createPlan = async (req, res) => {
     try {
@@ -13,7 +14,20 @@ const createPlan = async (req, res) => {
 
 const getAllPlans = async (req, res) => {
     try {
-        const plans = await SubscriptionPlan.find().sort({ createdAt: -1 });
+        const { page, limit, skip, search, sortBy, sortOrder } = getPaginationParams(req);
+
+        let searchQuery = {};
+        if (search) {
+            searchQuery = { name: { $regex: search, $options: "i" } };
+        }
+
+        const [plans, total] = await Promise.all([
+            SubscriptionPlan.find(searchQuery)
+                .sort({ [sortBy]: sortOrder })
+                .skip(skip)
+                .limit(limit),
+            SubscriptionPlan.countDocuments(searchQuery)
+        ]);
 
         const plansWithUsage = await Promise.all(plans.map(async (plan) => {
             const usageCount = await Subscription.countDocuments({
@@ -26,7 +40,11 @@ const getAllPlans = async (req, res) => {
             };
         }));
 
-        res.status(200).json({ success: true, data: plansWithUsage });
+        res.status(200).json({
+            success: true,
+            data: plansWithUsage,
+            pagination: buildPaginationMeta(total, page, limit)
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -6,18 +6,25 @@ const Vehicle = require("../models/Vehicle.model");
 const Invoice = require("../models/Invoice.model");
 const Subscription = require("../models/Subscription.model");
 const SubscriptionPlan = require("../models/SubscriptionPlan.model");
+const { getPaginationParams, buildPaginationMeta } = require("../utils/pagination.helper");
 
 const createGarage = async (req, res) => {
     try {
-        const { name, ownerName, ownerMobile, ownerEmail, address, isDeleted } = req.body;
-        const garage = new Garage({ name, ownerName, ownerMobile, ownerEmail, address, isDeleted });
+        const { name, owner, mobile, email, address, password, isDeleted } = req.body;
+        const garage = new Garage({ name, owner, mobile, email, address, password, isDeleted });
         await garage.save();
+
+        // Find or create the "Free" subscription plan
+        let freePlan = await SubscriptionPlan.findOne({ name: "Free" });
+        if (!freePlan) {
+            freePlan = await SubscriptionPlan.create({ name: "Free", durationDays: 0, price: 0 });
+        }
 
         const subscriptionId = "SUB-" + Date.now() + "-" + Math.random().toString(36).substring(2, 8).toUpperCase();
         const subscription = new Subscription({
             garageId: garage._id,
             subscriptionId,
-            planName: "Free",
+            planId: freePlan._id,
             durationDays: 0,
             startDate: new Date(),
             endDate: null,
@@ -28,10 +35,12 @@ const createGarage = async (req, res) => {
         garage.currentSubscriptionId = subscription._id;
         await garage.save();
 
-        const populatedGarage = await Garage.findById(garage._id).populate({
-            path: "currentSubscriptionId",
-            populate: { path: "planId" }
-        });
+        const populatedGarage = await Garage.findById(garage._id)
+            .select("-password")
+            .populate({
+                path: "currentSubscriptionId",
+                populate: { path: "planId" }
+            });
         res.status(200).json({ message: "Garage created successfully", garage: populatedGarage });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -40,22 +49,56 @@ const createGarage = async (req, res) => {
 
 const getGarages = async (req, res) => {
     try {
-        const garages = await Garage.find().populate({
-            path: "currentSubscriptionId",
-            populate: { path: "planId" }
+        const { page, limit, skip, search, sortBy, sortOrder } = getPaginationParams(req);
+
+        let searchQuery = {};
+        if (search) {
+            searchQuery = {
+                $or: [
+                    { name: { $regex: search, $options: "i" } },
+                    { owner: { $regex: search, $options: "i" } },
+                    { mobile: { $regex: search, $options: "i" } },
+                ]
+            };
+        }
+
+        const [data, total] = await Promise.all([
+            Garage.find(searchQuery)
+                .populate({ path: "currentSubscriptionId", populate: { path: "planId" } })
+                .sort({ [sortBy]: sortOrder })
+                .skip(skip)
+                .limit(limit),
+            Garage.countDocuments(searchQuery)
+        ]);
+
+        res.status(200).json({
+            message: "Garages fetched successfully",
+            data,
+            pagination: buildPaginationMeta(total, page, limit)
         });
-        res.status(200).json({ message: "Garages fetched successfully", garages });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
 const getSubscriptions = async (req, res) => {
     try {
-        const subscriptions = await Subscription.find()
-            .populate("garageId", "name ownerName")
-            .populate("planId")
-            .sort({ createdAt: -1 });
-        res.status(200).json({ message: "Subscriptions fetched successfully", subscriptions });
+        const { page, limit, skip, sortBy, sortOrder } = getPaginationParams(req);
+
+        const [data, total] = await Promise.all([
+            Subscription.find()
+                .populate("garageId", "name owner")
+                .populate("planId")
+                .sort({ [sortBy]: sortOrder })
+                .skip(skip)
+                .limit(limit),
+            Subscription.countDocuments()
+        ]);
+
+        res.status(200).json({
+            message: "Subscriptions fetched successfully",
+            data,
+            pagination: buildPaginationMeta(total, page, limit)
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -172,8 +215,22 @@ const getGarageSummary = async (req, res) => {
 
 const getGarageCustomers = async (req, res) => {
     try {
-        const customers = await Customer.find({ garageId: req.params.id });
-        res.status(200).json({ message: "Customers fetched successfully", customers });
+        const { page, limit, skip, sortBy, sortOrder } = getPaginationParams(req);
+        const filter = { garageId: req.params.id };
+
+        const [data, total] = await Promise.all([
+            Customer.find(filter)
+                .sort({ [sortBy]: sortOrder })
+                .skip(skip)
+                .limit(limit),
+            Customer.countDocuments(filter)
+        ]);
+
+        res.status(200).json({
+            message: "Customers fetched successfully",
+            data,
+            pagination: buildPaginationMeta(total, page, limit)
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

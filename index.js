@@ -13,6 +13,7 @@ const transactionRoutes = require("./src/routes/transaction.routes");
 const garageRoutes = require("./src/routes/garage.routes");
 const uploadRoutes = require("./src/routes/upload.routes");
 const adminRoutes = require("./src/routes/admin.routes");
+const garageAuthRoutes = require("./src/routes/garageAuth.routes");
 const subscriptionPlanRoutes = require("./src/routes/subscriptionPlan.routes");
 const connectDB = require("./src/config/db");
 const Admin = require("./src/models/Admin.model.js");
@@ -49,6 +50,7 @@ app.get("/health", (req, res) => {
 app.use("/api/customer", customerRoutes);
 app.use("/api/garage", garageRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/auth", garageAuthRoutes);
 app.use("/api/subscription-plans", subscriptionPlanRoutes);
 app.use("/api/vehicle", vehicleRoutes);
 app.use("/api/jobcard", jobCardRoutes);

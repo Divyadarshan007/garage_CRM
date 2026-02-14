@@ -1,10 +1,7 @@
 const mongoose = require("mongoose");
 
 const CustomerSchema = new mongoose.Schema({
-    garageId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Garage"
-    },
+   
     name: {
         type: String,
         required: [true, 'Name is required'],

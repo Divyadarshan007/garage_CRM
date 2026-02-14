@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../utils/authMiddleware");
+const { protectGarage } = require("../utils/garageAuthMiddleware");
 const upload = require("../utils/middlewares/multer");
 const path = require("path");
 
-router.use(protect);
+router.use(protectGarage);
 
 router.post("/", upload.array("images", 10), async (req, res) => {
     const files = req.files;

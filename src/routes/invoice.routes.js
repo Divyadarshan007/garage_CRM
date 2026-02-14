@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../utils/authMiddleware");
+const { protectGarage } = require("../utils/garageAuthMiddleware");
 const Invoice = require("../models/Invoice.model");
+const { getPaginationParams, buildPaginationMeta } = require("../utils/pagination.helper");
 
-router.use(protect);
+router.use(protectGarage);
 
 router.post("/", async (req, res) => {
     try {
@@ -18,8 +19,25 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
     try {
-        const invoices = await Invoice.find().populate("jobcardId").populate("customerId").populate("vehicleId").populate("quotationId");
-        res.status(200).json({ message: "Invoices fetched successfully", invoices });
+        const { page, limit, skip, sortBy, sortOrder } = getPaginationParams(req);
+
+        const [data, total] = await Promise.all([
+            Invoice.find()
+                .populate("jobcardId")
+                .populate("customerId")
+                .populate("vehicleId")
+                .populate("quotationId")
+                .sort({ [sortBy]: sortOrder })
+                .skip(skip)
+                .limit(limit),
+            Invoice.countDocuments()
+        ]);
+
+        res.status(200).json({
+            message: "Invoices fetched successfully",
+            data,
+            pagination: buildPaginationMeta(total, page, limit)
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

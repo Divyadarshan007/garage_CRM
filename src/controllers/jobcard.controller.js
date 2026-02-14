@@ -1,4 +1,5 @@
 const JobCardModel = require("../models/JobCard.model");
+const { getPaginationParams, buildPaginationMeta } = require("../utils/pagination.helper");
 
 const createJobCard = async (req, res) => {
     try {
@@ -13,13 +14,27 @@ const createJobCard = async (req, res) => {
 }
 const getJobCards = async (req, res) => {
     try {
+        const { page, limit, skip, sortBy, sortOrder } = getPaginationParams(req);
         const { status } = req.query;
-        let filter = {}
+
+        let filter = {};
         if (status) {
-            filter.status = status
+            filter.status = status;
         }
-        const jobCards = await JobCardModel.find(filter)
-        res.status(200).json({ message: "Job Cards fetched successfully", jobCards });
+
+        const [data, total] = await Promise.all([
+            JobCardModel.find(filter)
+                .sort({ [sortBy]: sortOrder })
+                .skip(skip)
+                .limit(limit),
+            JobCardModel.countDocuments(filter)
+        ]);
+
+        res.status(200).json({
+            message: "Job Cards fetched successfully",
+            data,
+            pagination: buildPaginationMeta(total, page, limit)
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

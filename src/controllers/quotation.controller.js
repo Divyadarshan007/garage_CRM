@@ -1,4 +1,6 @@
 const QuotationModel = require("../models/Quotation.model");
+const { getPaginationParams, buildPaginationMeta } = require("../utils/pagination.helper");
+
 const createQuotation = async (req, res) => {
     const { jobcardId, garageId, services, parts, taxRate, discount, notes } = req.body;
     try {
@@ -15,8 +17,22 @@ const createQuotation = async (req, res) => {
 
 const getQuotations = async (req, res) => {
     try {
-        const quotations = await QuotationModel.find().populate("jobcardId");
-        res.status(200).json({ message: "Quotations fetched successfully", quotations });
+        const { page, limit, skip, sortBy, sortOrder } = getPaginationParams(req);
+
+        const [data, total] = await Promise.all([
+            QuotationModel.find()
+                .populate("jobcardId")
+                .sort({ [sortBy]: sortOrder })
+                .skip(skip)
+                .limit(limit),
+            QuotationModel.countDocuments()
+        ]);
+
+        res.status(200).json({
+            message: "Quotations fetched successfully",
+            data,
+            pagination: buildPaginationMeta(total, page, limit)
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

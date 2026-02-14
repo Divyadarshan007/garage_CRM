@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../utils/authMiddleware");
+const { protectGarage } = require("../utils/garageAuthMiddleware");
 
 const { createVehicle, getAllVehicles, updateVehicle, deleteVehicle } = require("../controllers/vehicle.controller");
 
-router.use(protect);
+router.use(protectGarage);
 
 router.post("/", createVehicle);
 router.get("/", getAllVehicles);

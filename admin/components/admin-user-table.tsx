@@ -34,7 +34,7 @@ export function AdminUserTable() {
         setLoading(true);
         try {
             const response = await garageAPI.getAdmins();
-            setAdmins(response.admins || []);
+            setAdmins(response.data || []);
         } catch (err: any) {
             console.error('Error fetching admins:', err);
             setError(err.message || 'Failed to fetch admins');
