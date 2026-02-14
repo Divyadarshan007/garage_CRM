@@ -34,8 +34,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     try {
       const res = await authAPI.getProfile();
-      if (res.success && res.data?.admin) {
-        setAdmin(res.data.admin);
+      if (res.success && res.data) {
+        setAdmin(res.data);
       } else {
         auth.removeToken();
         setAdmin(null);
@@ -58,11 +58,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(res.message || 'Login failed');
     }
     auth.setToken(res.data.token);
-    if (res.data.admin) {
-      setAdmin(res.data.admin);
-    } else {
-      await refreshProfile();
-    }
+
+    // Extract admin data without the token
+    const { token, ...adminData } = res.data;
+    setAdmin(adminData as Admin);
   };
 
   const logout = async () => {

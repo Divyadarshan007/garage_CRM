@@ -18,12 +18,10 @@ const loginAdmin = async (req, res) => {
                 success: true,
                 message: "Login successful",
                 data: {
-                    admin: {
-                        _id: admin._id,
-                        name: admin.name,
-                        email: admin.email,
-                        isActive: true
-                    },
+                    _id: admin._id,
+                    name: admin.name,
+                    email: admin.email,
+                    isActive: true,
                     token: generateToken(admin._id),
                 },
             });
@@ -43,12 +41,10 @@ const getAdminProfile = async (req, res) => {
             res.json({
                 success: true,
                 data: {
-                    admin: {
-                        _id: admin._id,
-                        name: admin.name,
-                        email: admin.email,
-                        isActive: true
-                    }
+                    _id: admin._id,
+                    name: admin.name,
+                    email: admin.email,
+                    isActive: true
                 }
             });
         } else {

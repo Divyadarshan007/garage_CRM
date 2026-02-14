@@ -22,13 +22,11 @@ const loginGarage = async (req, res) => {
                 success: true,
                 message: "Login successful",
                 data: {
-                    garage: {
-                        _id: garage._id,
-                        name: garage.name,
-                        owner: garage.owner,
-                        email: garage.email,
-                        mobile: garage.mobile,
-                    },
+                    _id: garage._id,
+                    name: garage.name,
+                    owner: garage.owner,
+                    email: garage.email,
+                    mobile: garage.mobile,
                     token: generateToken(garage._id),
                 },
             });
@@ -48,14 +46,12 @@ const getGarageProfile = async (req, res) => {
             res.json({
                 success: true,
                 data: {
-                    garage: {
-                        _id: garage._id,
-                        name: garage.name,
-                        owner: garage.owner,
-                        email: garage.email,
-                        mobile: garage.mobile,
-                        address: garage.address,
-                    }
+                    _id: garage._id,
+                    name: garage.name,
+                    owner: garage.owner,
+                    email: garage.email,
+                    mobile: garage.mobile,
+                    address: garage.address,
                 }
             });
         } else {
