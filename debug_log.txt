@@ -1,0 +1,9 @@
+Project ID: garage-crm-24600
+Client Email: firebase-adminsdk-fbsvc@garage-crm-24600.iam.gserviceaccount.com
+Private Key length: 1704
+Formatted Key starts with: -----BEGIN PRIVATE KEY-----
+MI
+Formatted Key ends with: g==
+-----END PRIVATE KEY-----
+
+✅ Success: Firebase Admin initialized!

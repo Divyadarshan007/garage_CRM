@@ -17,6 +17,7 @@ const garageAuthRoutes = require("./src/routes/garageAuth.routes");
 const subscriptionPlanRoutes = require("./src/routes/subscriptionPlan.routes");
 const connectDB = require("./src/config/db");
 const Admin = require("./src/models/Admin.model.js");
+const { notFound, errorHandler } = require("./src/utils/responseHandler.middleware");
 
 const seedAdmin = async () => {
     try {
@@ -36,7 +37,20 @@ const seedAdmin = async () => {
 
 app.use(cors());
 app.use(express.json());
+
+// Handle JSON parsing errors
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+        return res.status(400).json({ message: "Invalid JSON format in request body" });
+    }
+    next(err);
+});
 app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+    console.log(`[${new Date().toLocaleTimeString()}] INCOMING: ${req.method} ${req.originalUrl}`);
+    next();
+});
+
 app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
@@ -44,10 +58,10 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", (req, res) => {
-    res.status(200).json({ status: "ok", message: "Server is healthy" });
+    res.status(200).json({ status: "ok" });
 });
 
-app.use("/api/customer", customerRoutes);
+app.use("/api/customers", customerRoutes);
 app.use("/api/garage", garageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", garageAuthRoutes);
@@ -58,6 +72,10 @@ app.use("/api/quotation", quotationRoutes);
 app.use("/api/invoice", invoiceRoutes);
 app.use("/api/transaction", transactionRoutes);
 app.use("/api/upload", uploadRoutes);
+
+// Error Handling Middlewares
+app.use(notFound);
+app.use(errorHandler);
 
 connectDB().then(() => {
     seedAdmin();

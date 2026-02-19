@@ -14,9 +14,9 @@ const GarageSchema = new mongoose.Schema({
     },
     mobile: {
         type: String,
-        required: true,
         trim: true,
-        unique: true
+        unique: true,
+        sparse: true
     },
     email: {
         type: String,
@@ -30,9 +30,10 @@ const GarageSchema = new mongoose.Schema({
         trim: true
     },
     address: {
-        type: String,
-        required: true,
-        trim: true
+        street: { type: String, trim: true, default: "" },
+        city: { type: String, trim: true, default: "" },
+        state: { type: String, trim: true, default: "" },
+        zipCode: { type: String, trim: true, default: "" }
     },
     isDeleted: {
         type: Boolean,

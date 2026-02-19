@@ -4,13 +4,15 @@ const Admin = require("../models/Admin.model");
 const { loginAdmin, getAdminProfile, createAdmin, updateAdmin, deleteAdmin } = require("../controllers/admin.controller");
 const { protect } = require("../utils/authMiddleware");
 const { getPaginationParams, buildPaginationMeta } = require("../utils/pagination.helper");
+const { validate } = require("../middleware/validator");
+const { createAdminSchema, loginAdminSchema, updateAdminSchema } = require("../validators/admin.validator");
 
-router.post("/auth/login", loginAdmin);
+router.post("/login", validate(loginAdminSchema), loginAdmin);
 router.post("/auth/logout", (req, res) => {
-    res.status(200).json({ success: true, message: "Logged out successfully" });
+    res.status(200).json({ loggedOut: true });
 });
 
-router.get("/", protect, async (req, res) => {
+router.get("/", protect, async (req, res, next) => {
     try {
         const { page, limit, skip, search, sortBy, sortOrder } = getPaginationParams(req);
 
@@ -34,17 +36,16 @@ router.get("/", protect, async (req, res) => {
         ]);
 
         res.status(200).json({
-            message: "Admins fetched successfully",
             data,
             pagination: buildPaginationMeta(total, page, limit)
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
-router.post("/", protect, createAdmin);
-router.put("/:id", protect, updateAdmin);
+router.post("/", protect, validate(createAdminSchema), createAdmin);
+router.put("/:id", protect, validate(updateAdminSchema), updateAdmin);
 router.delete("/:id", protect, deleteAdmin);
 router.get("/auth/profile", protect, getAdminProfile);
 

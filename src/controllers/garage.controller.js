@@ -6,15 +6,14 @@ const Vehicle = require("../models/Vehicle.model");
 const Invoice = require("../models/Invoice.model");
 const Subscription = require("../models/Subscription.model");
 const SubscriptionPlan = require("../models/SubscriptionPlan.model");
-const { getPaginationParams, buildPaginationMeta } = require("../utils/pagination.helper");
+const { getPaginationParams } = require("../utils/pagination.helper");
 
-const createGarage = async (req, res) => {
+const createGarage = async (req, res, next) => {
     try {
         const { name, owner, mobile, email, address, password, isDeleted } = req.body;
         const garage = new Garage({ name, owner, mobile, email, address, password, isDeleted });
         await garage.save();
 
-        // Find or create the "Free" subscription plan
         let freePlan = await SubscriptionPlan.findOne({ name: "Free" });
         if (!freePlan) {
             freePlan = await SubscriptionPlan.create({ name: "Free", durationDays: 0, price: 0 });
@@ -41,13 +40,13 @@ const createGarage = async (req, res) => {
                 path: "currentSubscriptionId",
                 populate: { path: "planId" }
             });
-        res.status(200).json({ message: "Garage created successfully", garage: populatedGarage });
+        res.status(200).json(populatedGarage);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
 
-const getGarages = async (req, res) => {
+const getGarages = async (req, res, next) => {
     try {
         const { page, limit, skip, search, sortBy, sortOrder } = getPaginationParams(req);
 
@@ -71,16 +70,15 @@ const getGarages = async (req, res) => {
             Garage.countDocuments(searchQuery)
         ]);
 
-        res.status(200).json({
-            message: "Garages fetched successfully",
-            data,
-            pagination: buildPaginationMeta(total, page, limit)
-        });
+        res.status(200).json(
+            data
+            // pagination: buildPaginationMeta(total, page, limit)
+        );
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
-const getSubscriptions = async (req, res) => {
+const getSubscriptions = async (req, res, next) => {
     try {
         const { page, limit, skip, sortBy, sortOrder } = getPaginationParams(req);
 
@@ -94,18 +92,17 @@ const getSubscriptions = async (req, res) => {
             Subscription.countDocuments()
         ]);
 
-        res.status(200).json({
-            message: "Subscriptions fetched successfully",
-            data,
-            pagination: buildPaginationMeta(total, page, limit)
-        });
+        res.status(200).json(
+            data
+            // pagination: buildPaginationMeta(total, page, limit)
+        );
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
 
 
-const getStatsOverview = async (req, res) => {
+const getStatsOverview = async (req, res, next) => {
     try {
         const [
             totalGarages,
@@ -139,7 +136,6 @@ const getStatsOverview = async (req, res) => {
         const activeSubscriptions = activeSubscriptionsResult.length > 0 ? activeSubscriptionsResult[0].count : 0;
 
         res.status(200).json({
-            message: "Stats fetched successfully",
             totalGarages,
             totalCustomers,
             totalVehicles,
@@ -148,41 +144,44 @@ const getStatsOverview = async (req, res) => {
             totalActivePlans
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
 
-const getGarageById = async (req, res) => {
+const getGarageById = async (req, res, next) => {
     try {
         const garage = await Garage.findById(req.params.id);
         if (!garage) {
-            return res.status(404).json({ message: "Garage not found" });
+            res.status(404);
+            throw new Error("Garage not found");
         }
-        res.status(200).json({ message: "Garage fetched successfully", garage });
+        res.status(200).json(garage);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
 
-const deleteGarage = async (req, res) => {
+const deleteGarage = async (req, res, next) => {
     try {
         const garage = await Garage.findByIdAndUpdate(req.params.id, { isDeleted: true }, { new: true });
         if (!garage) {
-            return res.status(404).json({ message: "Garage not found" });
+            res.status(404);
+            throw new Error("Garage not found");
         }
-        res.status(200).json({ message: "Garage deleted successfully", garage });
+        res.status(200).json(garage);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
 
-const getGarageSummary = async (req, res) => {
+const getGarageSummary = async (req, res, next) => {
     try {
         const garageId = req.params.id;
 
         const garage = await Garage.findById(garageId);
         if (!garage) {
-            return res.status(404).json({ message: "Garage not found" });
+            res.status(404);
+            throw new Error("Garage not found");
         }
 
         const [
@@ -209,11 +208,11 @@ const getGarageSummary = async (req, res) => {
             totalInvoices,
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
 
-const getGarageCustomers = async (req, res) => {
+const getGarageCustomers = async (req, res, next) => {
     try {
         const { page, limit, skip, sortBy, sortOrder } = getPaginationParams(req);
         const filter = { garageId: req.params.id };
@@ -226,38 +225,39 @@ const getGarageCustomers = async (req, res) => {
             Customer.countDocuments(filter)
         ]);
 
-        res.status(200).json({
-            message: "Customers fetched successfully",
-            data,
-            pagination: buildPaginationMeta(total, page, limit)
-        });
+        res.status(200).json(
+            data
+            // pagination: buildPaginationMeta(total, page, limit)
+        );
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
 
-const updateGarage = async (req, res) => {
+const updateGarage = async (req, res, next) => {
     try {
-        const garage = await Garage.findByIdAndUpdate(req.params.id, req.body);
-        res.status(200).json({ message: "Garage updated successfully", garage });
+        const garage = await Garage.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.status(200).json(garage);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
 
-const updateGarageSubscription = async (req, res) => {
+const updateGarageSubscription = async (req, res, next) => {
     try {
         const garageId = req.params.id;
         const { planId } = req.body;
 
         const garage = await Garage.findById(garageId);
         if (!garage) {
-            return res.status(404).json({ message: "Garage not found" });
+            res.status(404);
+            throw new Error("Garage not found");
         }
 
         const plan = await SubscriptionPlan.findById(planId);
         if (!plan) {
-            return res.status(404).json({ message: "Subscription plan not found" });
+            res.status(404);
+            throw new Error("Subscription plan not found");
         }
 
         const durationDays = plan.durationDays;
@@ -288,9 +288,9 @@ const updateGarageSubscription = async (req, res) => {
         garage.currentSubscriptionId = subscription._id;
         await garage.save();
 
-        res.status(200).json({ message: "Subscription updated successfully", subscription });
+        res.status(200).json(subscription);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 }
 module.exports = { createGarage, getGarages, getSubscriptions, getStatsOverview, getGarageById, deleteGarage, getGarageSummary, getGarageCustomers, updateGarage, updateGarageSubscription }

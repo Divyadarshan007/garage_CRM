@@ -7,7 +7,7 @@ const generateToken = (id) => {
     });
 };
 
-const loginAdmin = async (req, res) => {
+const loginAdmin = async (req, res, next) => {
     const { email, password } = req.body;
 
     try {
@@ -15,54 +15,50 @@ const loginAdmin = async (req, res) => {
 
         if (admin && (await admin.matchPassword(password))) {
             res.json({
-                success: true,
-                message: "Login successful",
-                data: {
-                    _id: admin._id,
-                    name: admin.name,
-                    email: admin.email,
-                    isActive: true,
-                    token: generateToken(admin._id),
-                },
+                _id: admin._id,
+                name: admin.name,
+                email: admin.email,
+                isActive: true,
+                token: generateToken(admin._id),
             });
         } else {
-            res.status(401).json({ success: false, message: "Invalid email or password" });
+            res.status(401);
+            throw new Error("Invalid email or password");
         }
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
-const getAdminProfile = async (req, res) => {
+const getAdminProfile = async (req, res, next) => {
     try {
         const admin = await Admin.findById(req.admin._id);
 
         if (admin) {
             res.json({
-                success: true,
-                data: {
-                    _id: admin._id,
-                    name: admin.name,
-                    email: admin.email,
-                    isActive: true
-                }
+                _id: admin._id,
+                name: admin.name,
+                email: admin.email,
+                isActive: true
             });
         } else {
-            res.status(404).json({ success: false, message: "Admin not found" });
+            res.status(404);
+            throw new Error("Admin not found");
         }
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
-const createAdmin = async (req, res) => {
+const createAdmin = async (req, res, next) => {
     const { name, email, password } = req.body;
 
     try {
         const adminExists = await Admin.findOne({ email });
 
         if (adminExists) {
-            return res.status(400).json({ success: false, message: "Admin already exists" });
+            res.status(400);
+            throw new Error("Admin already exists");
         }
 
         const admin = await Admin.create({
@@ -73,23 +69,20 @@ const createAdmin = async (req, res) => {
 
         if (admin) {
             res.status(201).json({
-                success: true,
-                message: "Admin created successfully",
-                admin: {
-                    _id: admin._id,
-                    name: admin.name,
-                    email: admin.email,
-                },
+                _id: admin._id,
+                name: admin.name,
+                email: admin.email,
             });
         } else {
-            res.status(400).json({ success: false, message: "Invalid admin data" });
+            res.status(400);
+            throw new Error("Invalid admin data");
         }
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
-const updateAdmin = async (req, res) => {
+const updateAdmin = async (req, res, next) => {
     try {
         const admin = await Admin.findById(req.params.id);
 
@@ -104,34 +97,32 @@ const updateAdmin = async (req, res) => {
             const updatedAdmin = await admin.save();
 
             res.json({
-                success: true,
-                message: "Admin updated successfully",
-                admin: {
-                    _id: updatedAdmin._id,
-                    name: updatedAdmin.name,
-                    email: updatedAdmin.email,
-                },
+                _id: updatedAdmin._id,
+                name: updatedAdmin.name,
+                email: updatedAdmin.email,
             });
         } else {
-            res.status(404).json({ success: false, message: "Admin not found" });
+            res.status(404);
+            throw new Error("Admin not found");
         }
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
-const deleteAdmin = async (req, res) => {
+const deleteAdmin = async (req, res, next) => {
     try {
         const admin = await Admin.findById(req.params.id);
 
         if (admin) {
             await Admin.deleteOne({ _id: req.params.id });
-            res.json({ success: true, message: "Admin removed" });
+            res.json({ id: req.params.id });
         } else {
-            res.status(404).json({ success: false, message: "Admin not found" });
+            res.status(404);
+            throw new Error("Admin not found");
         }
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 

@@ -7,7 +7,8 @@ const InvoiceSchema = new mongoose.Schema({
     invoiceNumber: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        unique: true
     },
     jobcardId: {
         type: mongoose.Schema.Types.ObjectId,

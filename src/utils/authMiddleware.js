@@ -19,6 +19,11 @@ const protect = (req, res, next) => {
             return res.status(401).json({ success: false, message: "Not authorized, invalid token" });
         }
 
+        // Ensure this is an admin token
+        if (decoded.role !== "admin") {
+            return res.status(401).json({ success: false, message: "Not authorized, invalid token type" });
+        }
+
         // Check if admin exists in DB
         Admin.findById(decoded.id)
             .select("-password")

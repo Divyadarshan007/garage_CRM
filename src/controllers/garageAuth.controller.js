@@ -1,5 +1,6 @@
-const Garage = require("../models/Garage.model");
 const jwt = require("jsonwebtoken");
+const Garage = require("../models/Garage.model");
+const firebaseAdmin = require("../config/firebaseAdmin");
 
 const generateToken = (id) => {
     return jwt.sign({ id, role: "garage" }, process.env.JWT_SECRET, {
@@ -7,45 +8,20 @@ const generateToken = (id) => {
     });
 };
 
-const loginGarage = async (req, res) => {
-    const { email, password } = req.body;
-
+const loginGarage = async (req, res, next) => {
     try {
+        const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(400).json({ success: false, message: "Please provide email and password" });
+            res.status(400);
+            throw new Error("Please provide email and password");
         }
 
         const garage = await Garage.findOne({ email, isDeleted: false });
 
         if (garage && (await garage.matchPassword(password))) {
             res.json({
-                success: true,
-                message: "Login successful",
-                data: {
-                    _id: garage._id,
-                    name: garage.name,
-                    owner: garage.owner,
-                    email: garage.email,
-                    mobile: garage.mobile,
-                    token: generateToken(garage._id),
-                },
-            });
-        } else {
-            res.status(401).json({ success: false, message: "Invalid email or password" });
-        }
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-const getGarageProfile = async (req, res) => {
-    try {
-        const garage = await Garage.findById(req.garage._id).select("-password");
-
-        if (garage) {
-            res.json({
-                success: true,
-                data: {
+                token: generateToken(garage._id),
+                user: {
                     _id: garage._id,
                     name: garage.name,
                     owner: garage.owner,
@@ -55,14 +31,88 @@ const getGarageProfile = async (req, res) => {
                 }
             });
         } else {
-            res.status(404).json({ success: false, message: "Garage not found" });
+            res.status(401);
+            throw new Error("Invalid email or password");
         }
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
+    }
+};
+
+const firebaseLogin = async (req, res, next) => {
+    try {
+        const { idToken } = req.body;
+        if (!idToken) {
+            res.status(400);
+            throw new Error("ID token is required");
+        }
+
+        // Verify Firebase ID Token
+        const decodedToken = await firebaseAdmin.verifyIdToken(idToken);
+        const { email, name, picture, uid } = decodedToken;
+
+        // Find or create garage
+        let garage = await Garage.findOne({ email, isDeleted: false });
+
+        if (!garage) {
+            // Create new garage if it doesn't exist
+            garage = await Garage.create({
+                email,
+                name: name || "New Garage",
+                owner: name || "Owner",
+                password: Math.random().toString(36).slice(-8), // Dummy password
+                address: {
+                    street: "",
+                    city: "",
+                    state: "",
+                    zipCode: ""
+                }
+            });
+        }
+
+        res.json({
+            token: generateToken(garage._id),
+            idToken, // Added for Postman convenience
+            user: {
+                _id: garage._id,
+                name: garage.name,
+                owner: garage.owner,
+                email: garage.email,
+                mobile: garage.mobile,
+                address: garage.address,
+            }
+        });
+    } catch (error) {
+        console.error("Firebase Login Error:", error);
+        res.status(401);
+        next(error);
+    }
+};
+
+const getGarageProfile = async (req, res, next) => {
+    try {
+        const garage = await Garage.findById(req.garage._id).select("-password");
+
+        if (garage) {
+            res.json({
+                _id: garage._id,
+                name: garage.name,
+                owner: garage.owner,
+                email: garage.email,
+                mobile: garage.mobile,
+                address: garage.address,
+            });
+        } else {
+            res.status(404);
+            throw new Error("Garage not found");
+        }
+    } catch (error) {
+        next(error);
     }
 };
 
 module.exports = {
     loginGarage,
+    firebaseLogin,
     getGarageProfile,
 };

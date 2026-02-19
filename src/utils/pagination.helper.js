@@ -18,16 +18,16 @@ const getPaginationParams = (req) => {
     return { page, limit, skip, search, sortBy, sortOrder };
 };
 
-const buildPaginationMeta = (total, page, limit) => {
-    const totalPages = Math.ceil(total / limit);
-    return {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-    };
-};
+// const buildPaginationMeta = (total, page, limit) => {
+//     const totalPages = Math.ceil(total / limit);
+//     return {
+//         total,
+//         page,
+//         limit,
+//         totalPages,
+//         hasNextPage: page < totalPages,
+//         hasPrevPage: page > 1,
+//     };
+// };
 
-module.exports = { getPaginationParams, buildPaginationMeta };
+module.exports = { getPaginationParams };
