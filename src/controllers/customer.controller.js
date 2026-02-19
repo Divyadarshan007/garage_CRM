@@ -15,7 +15,7 @@ const createCustomer = async (req, res, next) => {
 
 const getCustomers = async (req, res, next) => {
     try {
-        const { page, limit, skip, search, sortBy, sortOrder } = getPaginationParams(req);
+        let { page, limit, skip, search, sortBy, sortOrder } = getPaginationParams(req);
 
         // If pageId is provided in params, override page and enforce limit of 10
         if (req.params.pageId) {

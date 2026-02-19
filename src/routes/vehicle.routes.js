@@ -14,6 +14,7 @@ router.get("/:id/jobcards/:pageId", getVehicleJobCards);
 router.get("/:pageId", getAllVehicles);
 router.get("/", getAllVehicles); // Keep base route for query params default
 
+router.post("/:customerId", validate(createVehicleSchema, { source: "all" }), createVehicle);
 router.post("/", validate(createVehicleSchema), createVehicle);
 router.patch("/:id", validate(updateVehicleSchema), updateVehicle);
 router.delete("/:id", deleteVehicle);

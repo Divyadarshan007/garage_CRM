@@ -4,7 +4,9 @@ const { getPaginationParams } = require("../utils/pagination.helper");
 
 const createVehicle = async (req, res, next) => {
     try {
-        const { customerId, garageId, vehicleType, brand, model, vehicleNumber, fuelType, isDeleted } = req.body;
+        const garageId = req.garage._id;
+        const customerId = req.params.customerId || req.body.customerId;
+        const { vehicleType, brand, model, vehicleNumber, fuelType, isDeleted } = req.body;
         const vehicle = new VehicleModel({ customerId, garageId, vehicleType, brand, model, vehicleNumber, fuelType, isDeleted });
         await vehicle.save();
         res.status(200).json(vehicle);

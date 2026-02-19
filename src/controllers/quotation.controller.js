@@ -29,10 +29,7 @@ const getQuotations = async (req, res, next) => {
             QuotationModel.countDocuments({ garageId: req.garage._id })
         ]);
 
-        res.status(200).json(
-            data
-            // pagination: buildPaginationMeta(total, page, limit)
-        );
+        res.status(200).json(data);
     } catch (error) {
         next(error);
     }

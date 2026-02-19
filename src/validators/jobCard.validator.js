@@ -10,13 +10,14 @@ const objectId = Joi.string().custom((value, helpers) => {
 }, "MongoDB ObjectId validation");
 
 const createJobCardSchema = Joi.object({
-    customerId: objectId.required().messages({
-        "any.required": "Customer ID is required",
+    customerId: objectId.optional().messages({
         "any.invalid": "Customer ID must be a valid MongoDB ObjectId"
     }),
-    vehicleId: objectId.required().messages({
-        "any.required": "Vehicle ID is required",
+    vehicleId: objectId.optional().messages({
         "any.invalid": "Vehicle ID must be a valid MongoDB ObjectId"
+    }),
+    vehicleNumber: Joi.string().optional().trim().uppercase().messages({
+        "string.empty": "Vehicle Number cannot be empty"
     }),
     jobCardNumber: Joi.string().required().messages({
         "any.required": "Job Card Number is required",
@@ -24,6 +25,14 @@ const createJobCardSchema = Joi.object({
     }),
     status: Joi.string().valid("open", "in_progress", "completed", "cancelled").optional(),
     description: Joi.string().optional().allow(""),
+    currentkm: Joi.number().required().messages({
+        "any.required": "Current KM is required"
+    }),
+    vehiclePhotos: Joi.array().items(Joi.string()).optional(),
+    serviceRequested: Joi.string().required().messages({
+        "any.required": "Service Requested is required"
+    }),
+    specificIssue: Joi.string().optional().allow(""),
     estimatedCost: Joi.number().optional(),
     deliveryDate: Joi.date().optional()
 });
