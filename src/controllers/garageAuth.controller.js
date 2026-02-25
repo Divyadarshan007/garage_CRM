@@ -19,6 +19,7 @@ const loginGarage = async (req, res, next) => {
         const garage = await Garage.findOne({ email, isDeleted: false });
 
         if (garage && (await garage.matchPassword(password))) {
+            const address = [garage.address?.street, garage.address?.city, garage.address?.state, garage.address?.zipCode].filter(Boolean).join(", ");
             res.json({
                 token: generateToken(garage._id),
                 user: {
@@ -27,7 +28,10 @@ const loginGarage = async (req, res, next) => {
                     owner: garage.owner,
                     email: garage.email,
                     mobile: garage.mobile,
-                    address: garage.address,
+                    address,
+                    city: garage.address?.city || "",
+                    state: garage.address?.state || "",
+                    zipCode: garage.address?.zipCode || "",
                 }
             });
         } else {
@@ -70,6 +74,7 @@ const firebaseLogin = async (req, res, next) => {
             });
         }
 
+        const address = [garage.address?.street, garage.address?.city, garage.address?.state, garage.address?.zipCode].filter(Boolean).join(", ");
         res.json({
             token: generateToken(garage._id),
             idToken, // Added for Postman convenience
@@ -79,7 +84,10 @@ const firebaseLogin = async (req, res, next) => {
                 owner: garage.owner,
                 email: garage.email,
                 mobile: garage.mobile,
-                address: garage.address,
+                address,
+                city: garage.address?.city || "",
+                state: garage.address?.state || "",
+                zipCode: garage.address?.zipCode || "",
             }
         });
     } catch (error) {
@@ -94,13 +102,17 @@ const getGarageProfile = async (req, res, next) => {
         const garage = await Garage.findById(req.garage._id).select("-password");
 
         if (garage) {
+            const address = [garage.address?.street, garage.address?.city, garage.address?.state, garage.address?.zipCode].filter(Boolean).join(", ");
             res.json({
                 _id: garage._id,
                 name: garage.name,
                 owner: garage.owner,
                 email: garage.email,
                 mobile: garage.mobile,
-                address: garage.address,
+                address,
+                city: garage.address?.city || "",
+                state: garage.address?.state || "",
+                zipCode: garage.address?.zipCode || "",
             });
         } else {
             res.status(404);
