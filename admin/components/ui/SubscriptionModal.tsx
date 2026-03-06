@@ -59,7 +59,8 @@ export default function SubscriptionModal({
             try {
                 setLoading(true);
                 const response = await garageAPI.getSubscriptionPlans();
-                const activePlans = response.data.filter((p: SubscriptionPlan) => p.isActive);
+                const plansData = Array.isArray(response) ? response : response.data || [];
+                const activePlans = plansData.filter((p: SubscriptionPlan) => p.isActive);
                 setPlans(activePlans);
                 if (activePlans.length > 0) {
                     setSelectedPlanId(activePlans[0]._id);

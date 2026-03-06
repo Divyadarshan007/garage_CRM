@@ -9,7 +9,7 @@ const vehicleRoutes = require("./src/routes/vehicle.routes");
 const jobCardRoutes = require("./src/routes/jobCard.routes");
 const quotationRoutes = require("./src/routes/quotation.routes");
 const invoiceRoutes = require("./src/routes/invoice.routes");
-const transactionRoutes = require("./src/routes/transaction.routes");
+const paymentRoutes = require("./src/routes/payment.routes");
 const garageRoutes = require("./src/routes/garage.routes");
 const uploadRoutes = require("./src/routes/upload.routes");
 const adminRoutes = require("./src/routes/admin.routes");
@@ -66,11 +66,11 @@ app.use("/api/garage", garageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", garageAuthRoutes);
 app.use("/api/subscription-plans", subscriptionPlanRoutes);
-app.use("/api/vehicle", vehicleRoutes);
-app.use("/api/jobcard", jobCardRoutes);
-app.use("/api/quotation", quotationRoutes);
-app.use("/api/invoice", invoiceRoutes);
-app.use("/api/transaction", transactionRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/jobcards", jobCardRoutes);
+app.use("/api/quotations", quotationRoutes);
+app.use("/api/invoices", invoiceRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/upload", uploadRoutes);
 
 // Error Handling Middlewares

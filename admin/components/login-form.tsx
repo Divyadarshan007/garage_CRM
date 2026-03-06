@@ -34,10 +34,17 @@ export function LoginForm({ className, onLogin, ...props }: LoginFormProps) {
     try {
       if (onLogin) await onLogin(email, password);
     } catch (err: unknown) {
-      const msg =
-        err && typeof err === 'object' && 'response' in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-          : null;
+      const responseData = (err as any).response?.data;
+      let msg = responseData?.message;
+
+      // Extract specific validation error if present
+      if (responseData?.errors && typeof responseData.errors === 'object') {
+        const firstErrorKey = Object.keys(responseData.errors)[0];
+        if (firstErrorKey && Array.isArray(responseData.errors[firstErrorKey]) && responseData.errors[firstErrorKey].length > 0) {
+          msg = responseData.errors[firstErrorKey][0];
+        }
+      }
+
       setError(msg || (err instanceof Error ? err.message : 'Login failed. Please try again.'));
     } finally {
       setIsLoading(false);

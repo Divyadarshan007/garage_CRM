@@ -9,6 +9,14 @@ const QuotationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "JobCard"
     },
+    customerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Customer"
+    },
+    vehicleId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Vehicle"
+    },
     services: {
         type: Array,
         default: [],
@@ -52,9 +60,10 @@ const QuotationSchema = new mongoose.Schema({
         trim: true,
         required: true
     },
-    approvalStatus: {
+    status: {
         type: String,
-        default: "Pending",
+        enum: ["draft", "approved", "rejected"],
+        default: "draft",
         trim: true
     },
 },

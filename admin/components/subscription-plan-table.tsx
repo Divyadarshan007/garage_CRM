@@ -37,7 +37,7 @@ export function SubscriptionPlanTable() {
         try {
             setLoading(true);
             const response = await garageAPI.getSubscriptionPlans();
-            setPlans(response.data || []);
+            setPlans(Array.isArray(response) ? response : response.data || []);
         } catch (err: any) {
             console.error('Error fetching plans:', err);
             setError(err.message || 'Failed to fetch subscription plans');

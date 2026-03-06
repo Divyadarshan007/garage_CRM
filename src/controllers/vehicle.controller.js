@@ -53,7 +53,7 @@ const getAllVehicles = async (req, res, next) => {
 
         // Filter by the logged-in garage
         const garageId = req.garage._id;
-        let searchQuery = { garageId };
+        let searchQuery = { garageId, isDeleted: { $ne: true } };
 
         if (search) {
             searchQuery.$or = [
@@ -104,7 +104,7 @@ const getVehicleDetail = async (req, res, next) => {
         const { id } = req.params;
         const garageId = req.garage._id;
 
-        const vehicle = await VehicleModel.findOne({ _id: id, garageId }).populate("customerId");
+        const vehicle = await VehicleModel.findOne({ _id: id, garageId, isDeleted: { $ne: true } }).populate("customerId");
 
         if (!vehicle) {
             const error = new Error("Vehicle not found");

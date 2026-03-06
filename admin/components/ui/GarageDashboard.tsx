@@ -41,7 +41,7 @@ interface Garage {
     owner: string;
     mobile: string;
     email: string;
-    address: string;
+    address: { street?: string; city?: string; state?: string; zipCode?: string } | string;
     logo?: string;
     status: string;
     createdAt: string;
@@ -227,9 +227,9 @@ export default function GarageDashboard() {
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="max-w-[200px] truncate" title={garage.address}>
+                                    <TableCell className="max-w-[200px] truncate" title={typeof garage.address === 'object' && garage.address !== null ? Object.values(garage.address).filter(Boolean).join(', ') : String(garage.address || '')}>
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                            <span className="truncate">{garage.address}</span>
+                                            <span className="truncate">{typeof garage.address === 'object' && garage.address !== null ? Object.values(garage.address).filter(Boolean).join(', ') : String(garage.address || '')}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>

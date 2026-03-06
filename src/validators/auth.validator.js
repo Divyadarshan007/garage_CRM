@@ -1,7 +1,7 @@
 const Joi = require("joi");
 
 const loginSchema = Joi.object({
-    email: Joi.string().email().required().messages({
+    email: Joi.string().trim().lowercase().email().required().messages({
         "any.required": "Email is required",
         "string.email": "Email must be a valid email address",
         "string.empty": "Email cannot be empty"

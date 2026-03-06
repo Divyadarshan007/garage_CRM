@@ -7,7 +7,7 @@ const { getPaginationParams, buildPaginationMeta } = require("../utils/paginatio
 const { validate } = require("../middleware/validator");
 const { createAdminSchema, loginAdminSchema, updateAdminSchema } = require("../validators/admin.validator");
 
-router.post("/login", validate(loginAdminSchema), loginAdmin);
+router.post("/auth/login", validate(loginAdminSchema), loginAdmin);
 router.post("/auth/logout", (req, res) => {
     res.status(200).json({ loggedOut: true });
 });

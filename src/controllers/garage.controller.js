@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Garage = require("../models/Garage.model");
 const Customer = require("../models/Customer.model");
 const Quotation = require("../models/Quotation.model");
@@ -6,6 +7,7 @@ const Vehicle = require("../models/Vehicle.model");
 const Invoice = require("../models/Invoice.model");
 const Subscription = require("../models/Subscription.model");
 const SubscriptionPlan = require("../models/SubscriptionPlan.model");
+const Payment = require("../models/Payment.model");
 const { getPaginationParams } = require("../utils/pagination.helper");
 
 const createGarage = async (req, res, next) => {
@@ -122,6 +124,16 @@ const getStatsOverview = async (req, res, next) => {
             { $match: { status: "Active" } },
             {
                 $lookup: {
+                    from: "garages",
+                    localField: "garageId",
+                    foreignField: "_id",
+                    as: "garage"
+                }
+            },
+            { $unwind: "$garage" },
+            { $match: { "garage.isDeleted": { $ne: true } } },
+            {
+                $lookup: {
                     from: "subscriptionplans",
                     localField: "planId",
                     foreignField: "_id",
@@ -176,7 +188,7 @@ const deleteGarage = async (req, res, next) => {
 
 const getGarageSummary = async (req, res, next) => {
     try {
-        const garageId = req.params.id;
+        const garageId = new mongoose.Types.ObjectId(req.params.id);
 
         const garage = await Garage.findById(garageId);
         if (!garage) {
@@ -184,28 +196,121 @@ const getGarageSummary = async (req, res, next) => {
             throw new Error("Garage not found");
         }
 
+        // --- Date Calculation Implementation ---
+        // IST is UTC + 5:30. 
+        // We calculate date boundaries in IST.
+        const now = new Date();
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const nowIST = new Date(now.getTime() + istOffset);
+
+        // Start of Today (IST)
+        const startOfTodayIST = new Date(nowIST);
+        startOfTodayIST.setUTCHours(0, 0, 0, 0);
+        // Map back to UTC for DB query
+        const startOfTodayUTC = new Date(startOfTodayIST.getTime() - istOffset);
+
+        // Start of current Month (IST)
+        const startOfMonthIST = new Date(nowIST);
+        startOfMonthIST.setUTCDate(1);
+        startOfMonthIST.setUTCHours(0, 0, 0, 0);
+        const startOfMonthUTC = new Date(startOfMonthIST.getTime() - istOffset);
+
+        // Start of last Month (IST)
+        const startOfLastMonthIST = new Date(startOfMonthIST);
+        startOfLastMonthIST.setUTCMonth(startOfLastMonthIST.getUTCMonth() - 1);
+        const startOfLastMonthUTC = new Date(startOfLastMonthIST.getTime() - istOffset);
+
+        // --- Aggregations & Counts ---
         const [
             totalCustomers,
-            totalVehicles,
             totalJobCards,
-            totalQuotations,
-            totalInvoices,
+            totalJobCardsToday,
+            activeJobCards,
+            completedJobCardsCount,
+            revenueData,
+            pendingPaymentResult
         ] = await Promise.all([
+            // Overall Counts
             Customer.countDocuments({ garageId }),
-            Vehicle.countDocuments({ garageId }),
-            JobCard.countDocuments({ garageId }),
-            Quotation.countDocuments({ garageId }),
-            Invoice.countDocuments({ garageId }),
+            JobCard.countDocuments({ garageId, isDeleted: { $ne: true } }),
 
+            // Today's Jobcards
+            JobCard.countDocuments({
+                garageId,
+                createdAt: { $gte: startOfTodayUTC },
+                isDeleted: { $ne: true }
+            }),
+
+            // Active Jobcards (Across all time)
+            JobCard.countDocuments({
+                garageId,
+                status: { $nin: ["completed", "paid"] },
+                isDeleted: { $ne: true }
+            }),
+
+            // Completed Jobcards (Across all time)
+            JobCard.countDocuments({
+                garageId,
+                status: { $in: ["completed", "paid"] },
+                isDeleted: { $ne: true }
+            }),
+
+            // Revenue Data (Payments)
+            Payment.aggregate([
+                { $match: { garageId } },
+                {
+                    $group: {
+                        _id: null,
+                        totalRevenue: { $sum: "$amount" },
+                        thisMonth: {
+                            $sum: {
+                                $cond: [{ $gte: ["$createdAt", startOfMonthUTC] }, "$amount", 0]
+                            }
+                        },
+                        lastMonth: {
+                            $sum: {
+                                $cond: [
+                                    {
+                                        $and: [
+                                            { $gte: ["$createdAt", startOfLastMonthUTC] },
+                                            { $lt: ["$createdAt", startOfMonthUTC] }
+                                        ]
+                                    },
+                                    "$amount",
+                                    0
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]),
+
+            // Pending Payments (Invoices)
+            Invoice.aggregate([
+                { $match: { garageId } },
+                { $group: { _id: null, totalPending: { $sum: "$amountDue" } } }
+            ])
         ]);
 
+        const revenue = revenueData[0] || { totalRevenue: 0, thisMonth: 0, lastMonth: 0 };
+        const pendingPayment = pendingPaymentResult[0] ? pendingPaymentResult[0].totalPending : 0;
+
         res.json({
-            garageId,
-            totalCustomers,
-            totalVehicles,
-            totalJobCards,
-            totalQuotations,
-            totalInvoices,
+            today: {
+                totalJobCards: totalJobCardsToday,
+                activeJobCards: activeJobCards,
+                completedJobCards: completedJobCardsCount
+            },
+            Revenue: {
+                thisMonth: revenue.thisMonth,
+                lastMonth: revenue.lastMonth
+            },
+            Overall: {
+                totalRevenue: revenue.totalRevenue,
+                pendingPayment: pendingPayment,
+                totalCustomers: totalCustomers,
+                totalJobCards: totalJobCards
+            }
         });
     } catch (error) {
         next(error);

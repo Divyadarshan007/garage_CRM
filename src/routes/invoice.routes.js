@@ -2,57 +2,18 @@ const express = require("express");
 const router = express.Router();
 const { protectGarage } = require("../utils/garageAuthMiddleware");
 const { validate } = require("../middleware/validator");
-const { createInvoiceSchema, updateInvoiceSchema } = require("../validators/invoice.validator");
-const Invoice = require("../models/Invoice.model");
-const { getPaginationParams } = require("../utils/pagination.helper");
+const { updateInvoiceSchema } = require("../validators/invoice.validator");
+const invoiceController = require("../controllers/invoice.controller");
 
 router.use(protectGarage);
 
-router.post("/", validate(createInvoiceSchema), async (req, res, next) => {
-    try {
-        const { invoiceNumber, jobcardId, customerId, vehicleId, quotationId, garageId, amountPaid, amountDue, status } = req.body;
-        const invoice = new Invoice({ invoiceNumber, jobcardId, customerId, vehicleId, quotationId, garageId, amountPaid, amountDue, status });
-        await invoice.save();
-        res.status(200).json(invoice);
-    } catch (error) {
-        next(error);
-    }
-});
+// Create invoice from quotation
+router.post("/:quotationId", invoiceController.createInvoice);
 
-router.get("/", async (req, res, next) => {
-    try {
-        const { page, limit, skip, sortBy, sortOrder } = getPaginationParams(req);
+// Get all invoices
+router.get("/", invoiceController.getInvoices);
 
-        const [data, total] = await Promise.all([
-            Invoice.find()
-                .populate("jobcardId")
-                .populate("customerId")
-                .populate("vehicleId")
-                .populate("quotationId")
-                .sort({ [sortBy]: sortOrder })
-                .skip(skip)
-                .limit(limit),
-            Invoice.countDocuments()
-        ]);
-
-        res.status(200).json(
-            data
-            // pagination: buildPaginationMeta(total, page, limit)
-        );
-    } catch (error) {
-        next(error);
-    }
-});
-
-
-router.patch("/:id", validate(updateInvoiceSchema), async (req, res, next) => {
-    try {
-        const invoice = await Invoice.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.status(200).json(invoice);
-    } catch (error) {
-        next(error);
-    }
-});
-
+// Update invoice
+router.patch("/:id", validate(updateInvoiceSchema), invoiceController.updateInvoice);
 
 module.exports = router;

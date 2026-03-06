@@ -10,56 +10,63 @@ const objectId = Joi.string().custom((value, helpers) => {
 }, "MongoDB ObjectId validation");
 
 const createQuotationSchema = Joi.object({
-    customerId: objectId.required().messages({
-        "any.required": "Customer ID is required",
-        "any.invalid": "Customer ID must be a valid MongoDB ObjectId"
-    }),
-    vehicleId: objectId.required().messages({
-        "any.required": "Vehicle ID is required",
-        "any.invalid": "Vehicle ID must be a valid MongoDB ObjectId"
-    }),
-    jobCardId: objectId.optional().allow(null).messages({
+    jobcardId: objectId.required().messages({
+        "any.required": "Job Card ID is required",
         "any.invalid": "Job Card ID must be a valid MongoDB ObjectId"
     }),
-    status: Joi.string().valid("draft", "pending", "approved", "rejected").optional(),
-    items: Joi.array().items(
+    garageId: objectId.optional(),
+    services: Joi.array().items(
         Joi.object({
-            description: Joi.string().required(),
-            quantity: Joi.number().required(),
-            unitPrice: Joi.number().required(),
-            amount: Joi.number().required(),
-            type: Joi.string().valid("service", "part").optional()
+            name: Joi.string().required(),
+            price: Joi.number().required()
         })
     ).min(1).required().messages({
-        "any.required": "Items are required",
-        "array.min": "At least one item is required"
+        "any.required": "Services are required",
+        "array.min": "At least one service is required"
     }),
-    totalAmount: Joi.number().required(),
-    tax: Joi.number().optional(),
-    discount: Joi.number().optional(),
-    grandTotal: Joi.number().required(),
-    notes: Joi.string().optional().allow("")
+    parts: Joi.array().items(
+        Joi.object({
+            name: Joi.string().required(),
+            price: Joi.number().required(),
+            quantity: Joi.number().required(),
+            total: Joi.number().required()
+        })
+    ).optional().default([]),
+    subtotal: Joi.number().optional(),
+    taxRate: Joi.number().required().messages({
+        "any.required": "Tax Rate is required"
+    }),
+    taxAmount: Joi.number().optional(),
+    discount: Joi.number().optional().default(0),
+    grandTotal: Joi.number().optional(),
+    notes: Joi.string().optional().allow(""),
+    status: Joi.string().valid("draft", "approved", "rejected").optional().default("draft")
 });
 
 const updateQuotationSchema = Joi.object({
-    customerId: objectId.optional(),
-    vehicleId: objectId.optional(),
-    jobCardId: objectId.optional().allow(null),
-    status: Joi.string().valid("draft", "pending", "approved", "rejected").optional(),
-    items: Joi.array().items(
+    jobcardId: objectId.optional(),
+    garageId: objectId.optional(),
+    services: Joi.array().items(
         Joi.object({
-            description: Joi.string().optional(),
-            quantity: Joi.number().optional(),
-            unitPrice: Joi.number().optional(),
-            amount: Joi.number().optional(),
-            type: Joi.string().valid("service", "part").optional()
+            name: Joi.string().optional(),
+            price: Joi.number().optional()
         })
     ).min(1).optional(),
-    totalAmount: Joi.number().optional(),
-    tax: Joi.number().optional(),
+    parts: Joi.array().items(
+        Joi.object({
+            name: Joi.string().optional(),
+            price: Joi.number().optional(),
+            quantity: Joi.number().optional(),
+            total: Joi.number().optional()
+        })
+    ).optional(),
+    subtotal: Joi.number().optional(),
+    taxRate: Joi.number().optional(),
+    taxAmount: Joi.number().optional(),
     discount: Joi.number().optional(),
     grandTotal: Joi.number().optional(),
-    notes: Joi.string().optional().allow("")
+    notes: Joi.string().optional().allow(""),
+    status: Joi.string().valid("draft", "approved", "rejected").optional()
 });
 
 module.exports = {

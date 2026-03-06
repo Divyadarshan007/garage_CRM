@@ -10,9 +10,9 @@ const createPlanSchema = Joi.object({
         "number.min": "Price cannot be negative"
     }),
     currency: Joi.string().default("INR").optional(),
-    durationInMonths: Joi.number().integer().min(1).required().messages({
+    durationDays: Joi.number().integer().min(0).required().messages({
         "any.required": "Duration is required",
-        "number.min": "Duration must be at least 1 month"
+        "number.min": "Duration cannot be negative"
     }),
     features: Joi.array().items(Joi.string()).optional(),
     type: Joi.string().valid("basic", "standard", "premium").optional(),
@@ -23,7 +23,7 @@ const updatePlanSchema = Joi.object({
     name: Joi.string().optional(),
     price: Joi.number().min(0).optional(),
     currency: Joi.string().optional(),
-    durationInMonths: Joi.number().integer().min(1).optional(),
+    durationDays: Joi.number().integer().min(0).optional(),
     features: Joi.array().items(Joi.string()).optional(),
     type: Joi.string().valid("basic", "standard", "premium").optional(),
     isActive: Joi.boolean().optional()

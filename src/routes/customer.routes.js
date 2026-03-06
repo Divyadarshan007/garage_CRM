@@ -16,7 +16,7 @@ router.post("/", validate(createCustomerSchema), createCustomer);
 router.get("/:pageId", getCustomers);
 router.patch("/:id", validate(updateCustomerSchema), updateCustomer);
 router.get("/:id/vehicles/:pageId", getVehiclesByCustomer);
-router.get("/:id/jobcard/:pageId", getJobCardsByCustomer);
+router.get("/:id/jobcards/:pageId", getJobCardsByCustomer);
 router.get("/:id/detail", getCustomerById);
 router.delete("/:id", deleteCustomer);
 

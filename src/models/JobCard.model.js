@@ -9,7 +9,6 @@ const JobCardSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        unique: true
     },
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -30,7 +29,7 @@ const JobCardSchema = new mongoose.Schema({
         trim: true
     },
     serviceRequested: {
-        type: String,
+        type: Array,
         required: true,
         trim: true
     },
@@ -41,7 +40,7 @@ const JobCardSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        default: "Pending",
+        default: "pending",
         trim: true
     },
     statusHistory: {
@@ -49,11 +48,21 @@ const JobCardSchema = new mongoose.Schema({
         default: [],
         trim: true
     },
+    isQuotationCreated: {
+        type: Boolean,
+        default: false
+    },
+    isInvoiceCreated: {
+        type: Boolean,
+        default: false
+    }
 
 },
     {
         timestamps: true
     })
+
+JobCardSchema.index({ garageId: 1, jobCardNumber: 1 }, { unique: true });
 
 const JobCard = mongoose.model("JobCard", JobCardSchema);
 module.exports = JobCard;

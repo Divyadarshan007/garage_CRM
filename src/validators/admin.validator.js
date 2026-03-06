@@ -14,7 +14,7 @@ const createAdminSchema = Joi.object({
         "any.required": "Name is required",
         "string.empty": "Name cannot be empty"
     }),
-    email: Joi.string().email().required().messages({
+    email: Joi.string().trim().lowercase().email().required().messages({
         "any.required": "Email is required",
         "string.email": "Email must be a valid email address",
         "string.empty": "Email cannot be empty"
@@ -28,7 +28,7 @@ const createAdminSchema = Joi.object({
 });
 
 const loginAdminSchema = Joi.object({
-    email: Joi.string().email().required().messages({
+    email: Joi.string().trim().lowercase().email().required().messages({
         "any.required": "Email is required",
         "string.email": "Email must be a valid email address",
         "string.empty": "Email cannot be empty"
@@ -41,7 +41,7 @@ const loginAdminSchema = Joi.object({
 
 const updateAdminSchema = Joi.object({
     name: Joi.string().optional(),
-    email: Joi.string().email().optional(),
+    email: Joi.string().trim().lowercase().email().optional(),
     role: Joi.string().valid("super_admin", "admin", "moderator").optional()
 });
 

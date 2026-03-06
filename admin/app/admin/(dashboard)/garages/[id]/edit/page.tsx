@@ -36,7 +36,9 @@ export default function EditGaragePage() {
                     owner: garage.owner || '',
                     mobile: garage.mobile || '',
                     email: garage.email || '',
-                    address: garage.address || ''
+                    address: typeof garage.address === 'object' && garage.address !== null
+                        ? Object.values(garage.address).filter(Boolean).join(', ')
+                        : String(garage.address || '')
                 });
             } catch (error: any) {
                 console.error('Failed to fetch garage:', error);
@@ -62,7 +64,11 @@ export default function EditGaragePage() {
         setLoading(true);
 
         try {
-            await garageAPI.editGarage(id, formData);
+            const payload = {
+                ...formData,
+                address: { street: formData.address, city: '', state: '', zipCode: '' }
+            };
+            await garageAPI.editGarage(id, payload);
             toast.success("Garage updated successfully.");
             setTimeout(() => {
                 router.push('/admin/garages');

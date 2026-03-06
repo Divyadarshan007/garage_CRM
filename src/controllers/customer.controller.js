@@ -63,7 +63,7 @@ const updateCustomer = async (req, res, next) => {
 }
 const getCustomerById = async (req, res, next) => {
     try {
-        const customer = await CustomerModel.findById(req.params.id);
+        const customer = await CustomerModel.findOne({ _id: req.params.id, isDeleted: { $ne: true } });
         if (!customer) {
             res.status(404);
             throw new Error("Customer not found");

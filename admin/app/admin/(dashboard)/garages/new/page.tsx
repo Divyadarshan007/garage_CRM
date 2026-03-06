@@ -33,7 +33,11 @@ export default function AddGaragePage() {
         setLoading(true);
 
         try {
-            await garageAPI.createGarage(formData);
+            const payload = {
+                ...formData,
+                address: { street: formData.address, city: '', state: '', zipCode: '' }
+            };
+            await garageAPI.createGarage(payload);
             toast.success("Garage has been added successfully.");
             setTimeout(() => {
                 router.push('/admin/garages');

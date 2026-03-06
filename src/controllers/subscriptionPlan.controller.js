@@ -30,10 +30,21 @@ const getAllPlans = async (req, res, next) => {
         ]);
 
         const plansWithUsage = await Promise.all(plans.map(async (plan) => {
-            const usageCount = await Subscription.countDocuments({
-                planId: plan._id,
-                status: "Active"
-            });
+            const usageResult = await Subscription.aggregate([
+                { $match: { planId: plan._id, status: "Active" } },
+                {
+                    $lookup: {
+                        from: "garages",
+                        localField: "garageId",
+                        foreignField: "_id",
+                        as: "garage"
+                    }
+                },
+                { $unwind: "$garage" },
+                { $match: { "garage.isDeleted": { $ne: true } } },
+                { $count: "count" }
+            ]);
+            const usageCount = usageResult.length > 0 ? usageResult[0].count : 0;
             return {
                 ...plan.toObject(),
                 usageCount
